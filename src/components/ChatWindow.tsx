@@ -6,7 +6,7 @@ import EmptyChat from './EmptyChat';
 import NextError from 'next/error';
 import { useChat } from '@/lib/hooks/useChat';
 import SettingsButtonMobile from './Settings/SettingsButtonMobile';
-import { Block } from '@/lib/types';
+import { Block, TimingPhase } from '@/lib/types';
 import Loader from './ui/Loader';
 
 export interface BaseMessage {
@@ -19,6 +19,8 @@ export interface Message extends BaseMessage {
   backendId: string;
   query: string;
   responseBlocks: Block[];
+  timings: TimingPhase[];
+  timingBlockId?: string;
   status: 'answering' | 'completed' | 'error';
 }
 

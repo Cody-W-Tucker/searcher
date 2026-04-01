@@ -5,6 +5,8 @@ import { ChatTurnMessage } from '@/lib/types';
 import { SearchSources } from '@/lib/agents/search/types';
 import APISearchAgent from '@/lib/agents/search/api';
 
+export const dynamic = 'force-dynamic';
+
 interface ChatRequestBody {
   optimizationMode: 'speed' | 'balanced' | 'quality';
   sources: SearchSources[];

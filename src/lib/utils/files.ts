@@ -3,8 +3,9 @@ import fs from 'fs';
 
 export const getFileDetails = (fileId: string) => {
   const fileLoc = path.join(
-    process.cwd(),
-    './uploads',
+    process.env.DATA_DIR || process.cwd(),
+    'data',
+    'uploads',
     fileId + '-extracted.json',
   );
 

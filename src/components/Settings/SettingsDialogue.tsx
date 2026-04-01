@@ -4,7 +4,6 @@ import {
   BrainCog,
   ChevronLeft,
   ExternalLink,
-  Search,
   Sliders,
   ToggleRight,
 } from 'lucide-react';
@@ -15,7 +14,6 @@ import { toast } from 'sonner';
 import Loader from '../ui/Loader';
 import { cn } from '@/lib/utils';
 import Models from './Sections/Models/Section';
-import SearchSection from './Sections/Search';
 import Select from '@/components/ui/Select';
 import Personalization from './Sections/Personalization';
 
@@ -39,18 +37,10 @@ const sections = [
   {
     key: 'models',
     name: 'Models',
-    description: 'Connect to AI services and manage connections.',
+    description: 'Choose which configured models to use.',
     icon: BrainCog,
     component: Models,
     dataAdd: 'modelProviders',
-  },
-  {
-    key: 'search',
-    name: 'Search',
-    description: 'Manage search settings.',
-    icon: Search,
-    component: SearchSection,
-    dataAdd: 'search',
   },
 ];
 

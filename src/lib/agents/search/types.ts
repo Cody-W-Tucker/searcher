@@ -55,7 +55,6 @@ export type ClassifierOutput = {
     personalSearch: boolean;
     academicSearch: boolean;
     discussionSearch: boolean;
-    showWeatherWidget: boolean;
     showStockWidget: boolean;
     showCalculationWidget: boolean;
   };

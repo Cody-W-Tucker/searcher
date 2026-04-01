@@ -3,13 +3,14 @@ import fs from 'fs';
 import { Config, ConfigModelProvider, UIConfigSections } from './types';
 import { hashObj } from '../utils/hash';
 import { getModelProvidersUIConfigSection } from '../models/providers';
+import { Model } from '../models/types';
 
 class ConfigManager {
   configPath: string = path.join(
     process.env.DATA_DIR || process.cwd(),
     '/data/config.json',
   );
-  configVersion = 1;
+  configVersion = 2;
   currentConfig: Config = {
     version: this.configVersion,
     setupComplete: false,
@@ -17,7 +18,7 @@ class ConfigManager {
     personalization: {},
     modelProviders: [],
     search: {
-      searxngURL: '',
+      exaApiKey: '',
     },
   };
   uiConfigSections: UIConfigSections = {
@@ -60,33 +61,6 @@ class ConfigManager {
         default: 'Metric',
         scope: 'client',
       },
-      {
-        name: 'Auto video & image search',
-        key: 'autoMediaSearch',
-        type: 'switch',
-        required: false,
-        description: 'Automatically search for relevant images and videos.',
-        default: true,
-        scope: 'client',
-      },
-      {
-        name: 'Show weather widget',
-        key: 'showWeatherWidget',
-        type: 'switch',
-        required: false,
-        description: 'Display the weather card on the home screen.',
-        default: true,
-        scope: 'client',
-      },
-      {
-        name: 'Show news widget',
-        key: 'showNewsWidget',
-        type: 'switch',
-        required: false,
-        description: 'Display the recent news card on the home screen.',
-        default: true,
-        scope: 'client',
-      },
     ],
     personalization: [
       {
@@ -103,15 +77,16 @@ class ConfigManager {
     modelProviders: [],
     search: [
       {
-        name: 'SearXNG URL',
-        key: 'searxngURL',
-        type: 'string',
+        name: 'Exa API Key',
+        key: 'exaApiKey',
+        type: 'password',
         required: false,
-        description: 'The URL of your SearXNG instance',
-        placeholder: 'http://localhost:4000',
+        description:
+          'Used for Exa-powered web, news, discussion, and academic search.',
+        placeholder: 'exa_...',
         default: '',
         scope: 'server',
-        env: 'SEARXNG_API_URL',
+        env: 'EXA_API_KEY',
       },
     ],
   };
@@ -126,20 +101,34 @@ class ConfigManager {
   }
 
   private saveConfig() {
+    fs.mkdirSync(path.dirname(this.configPath), { recursive: true });
     fs.writeFileSync(
       this.configPath,
       JSON.stringify(this.currentConfig, null, 2),
     );
   }
 
+  private parseModelListEnv(envName: string): Model[] {
+    const raw = process.env[envName];
+
+    if (!raw) return [];
+
+    return Array.from(
+      new Set(
+        raw
+          .split(/[\n,]/)
+          .map((value) => value.trim())
+          .filter(Boolean),
+      ),
+    ).map((model) => ({
+      key: model,
+      name: model,
+    }));
+  }
+
   private initializeConfig() {
     const exists = fs.existsSync(this.configPath);
-    if (!exists) {
-      fs.writeFileSync(
-        this.configPath,
-        JSON.stringify(this.currentConfig, null, 2),
-      );
-    } else {
+    if (exists) {
       try {
         this.currentConfig = JSON.parse(
           fs.readFileSync(this.configPath, 'utf-8'),
@@ -168,17 +157,39 @@ class ConfigManager {
   }
 
   private migrateConfig(config: Config): Config {
-    /* TODO: Add migrations */
-    return config;
+    const migrated: Config = {
+      version: this.configVersion,
+      setupComplete: config.setupComplete ?? false,
+      preferences: config.preferences ?? {},
+      personalization: config.personalization ?? {},
+      modelProviders: config.modelProviders ?? [],
+      search: {
+        ...(config.search ?? {}),
+      },
+    };
+
+    if (
+      Object.prototype.hasOwnProperty.call(migrated.search, 'searxngURL') &&
+      !Object.prototype.hasOwnProperty.call(migrated.search, 'exaApiKey')
+    ) {
+      migrated.search.exaApiKey = '';
+    }
+
+    delete migrated.search.searxngURL;
+
+    if (!Object.prototype.hasOwnProperty.call(migrated.search, 'exaApiKey')) {
+      migrated.search.exaApiKey = '';
+    }
+
+    return migrated;
   }
 
   private initializeFromEnv() {
-    /* providers section*/
     const providerConfigSections = getModelProvidersUIConfigSection();
 
     this.uiConfigSections.modelProviders = providerConfigSections;
 
-    const newProviders: ConfigModelProvider[] = [];
+    const envProviders: ConfigModelProvider[] = [];
 
     providerConfigSections.forEach((provider) => {
       const newProvider: ConfigModelProvider & { required?: string[] } = {
@@ -210,31 +221,23 @@ class ConfigManager {
       });
 
       if (configured) {
+        if (provider.key === 'openai') {
+          newProvider.chatModels = this.parseModelListEnv('OPENAI_CHAT_MODELS');
+          newProvider.embeddingModels = this.parseModelListEnv(
+            'OPENAI_EMBEDDING_MODELS',
+          );
+        }
+
         const hash = hashObj(newProvider.config);
         newProvider.hash = hash;
         delete newProvider.required;
 
-        const exists = this.currentConfig.modelProviders.find(
-          (p) => p.hash === hash,
-        );
-
-        if (!exists) {
-          newProviders.push(newProvider);
-        }
+        envProviders.push(newProvider);
       }
     });
 
-    this.currentConfig.modelProviders.push(...newProviders);
-
-    /* search section */
-    this.uiConfigSections.search.forEach((f) => {
-      if (f.env && !this.currentConfig.search[f.key]) {
-        this.currentConfig.search[f.key] =
-          process.env[f.env] ?? f.default ?? '';
-      }
-    });
-
-    this.saveConfig();
+    this.currentConfig.modelProviders = envProviders;
+    this.currentConfig.search.exaApiKey = process.env.EXA_API_KEY ?? '';
   }
 
   public getConfig(key: string, defaultValue?: any): any {

@@ -4,25 +4,32 @@ import { classify } from './classifier';
 import Researcher from './researcher';
 import { getWriterPrompt } from '@/lib/prompts/search/writer';
 import { WidgetExecutor } from './widgets';
+import { buildWriterContext, createSpeedModeClassification } from './helpers';
 
 class APISearchAgent {
   async searchAsync(session: SessionManager, input: SearchAgentInput) {
-    const classification = await classify({
-      chatHistory: input.chatHistory,
-      enabledSources: input.config.sources,
-      query: input.followUp,
-      llm: input.config.llm,
-    });
+    const isSpeedMode = input.config.mode === 'speed';
 
-    const widgetPromise = WidgetExecutor.executeAll({
-      classification,
-      chatHistory: input.chatHistory,
-      followUp: input.followUp,
-      llm: input.config.llm,
-    }).catch((err) => {
-      console.error(`Error executing widgets: ${err}`);
-      return [];
-    });
+    const classification = isSpeedMode
+      ? createSpeedModeClassification(input.followUp)
+      : await classify({
+          chatHistory: input.chatHistory,
+          enabledSources: input.config.sources,
+          query: input.followUp,
+          llm: input.config.llm,
+        });
+
+    const widgetPromise = isSpeedMode
+      ? Promise.resolve([])
+      : WidgetExecutor.executeAll({
+          classification,
+          chatHistory: input.chatHistory,
+          followUp: input.followUp,
+          llm: input.config.llm,
+        }).catch((err) => {
+          console.error(`Error executing widgets: ${err}`);
+          return [];
+        });
 
     let searchPromise: Promise<ResearcherOutput> | null = null;
 
@@ -52,26 +59,18 @@ class APISearchAgent {
       type: 'researchComplete',
     });
 
-    const finalContext =
-      searchResults?.searchFindings
-        .map(
-          (f, index) =>
-            `<result index=${index + 1} title=${f.metadata.title}>${f.content}</result>`,
-        )
-        .join('\n') || '';
-
-    const widgetContext = widgetOutputs
-      .map((o) => {
-        return `<result>${o.llmContext}</result>`;
-      })
-      .join('\n-------------\n');
-
-    const finalContextWithWidgets = `<search_results note="These are the search results and assistant can cite these">\n${finalContext}\n</search_results>\n<widgets_result noteForAssistant="Its output is already showed to the user, assistant can use this information to answer the query but do not CITE this as a souce">\n${widgetContext}\n</widgets_result>`;
+    const finalContextWithWidgets = buildWriterContext(
+      searchResults?.searchFindings,
+      widgetOutputs,
+    );
 
     const writerPrompt = getWriterPrompt(
       finalContextWithWidgets,
       input.config.systemInstructions,
       input.config.mode,
+      {
+        hasSearchResults: Boolean(searchResults?.searchFindings.length),
+      },
     );
 
     const answerStream = input.config.llm.streamText({

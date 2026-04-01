@@ -38,4 +38,6 @@ Thumbs.db
 db.sqlite
 /searxng
 
-certificates
+# Nix build outputs
+result
+result-*

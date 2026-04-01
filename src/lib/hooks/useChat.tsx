@@ -1,7 +1,7 @@
 'use client';
 
 import { Message } from '@/components/ChatWindow';
-import { Block } from '@/lib/types';
+import { Block, TimingBlock, TimingPhase } from '@/lib/types';
 import {
   createContext,
   useContext,
@@ -15,13 +15,13 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { getSuggestions } from '../actions';
 import { MinimalProvider } from '../models/types';
-import { getAutoMediaSearch } from '../config/clientRegistry';
 import { applyPatch } from 'rfc6902';
 import { Widget } from '@/components/ChatWindow';
 
 export type Section = {
   message: Message;
   widgets: Widget[];
+  timings: TimingPhase[];
   parsedTextBlocks: string[];
   speechMessage: string;
   thinkingEnded: boolean;
@@ -108,7 +108,7 @@ const checkConfig = async (
 
     if (providers.length === 0) {
       throw new Error(
-        'No chat model providers found, please configure them in the settings page.',
+        'No chat model providers found. Configure them in your deployment.',
       );
     }
 
@@ -118,7 +118,7 @@ const checkConfig = async (
 
     if (!chatModelProvider) {
       throw new Error(
-        'No chat models found, pleae configure them in the settings page.',
+        'No chat models found. Configure them in your deployment.',
       );
     }
 
@@ -135,7 +135,7 @@ const checkConfig = async (
 
     if (!embeddingModelProvider) {
       throw new Error(
-        'No embedding models found, pleae configure them in the settings page.',
+        'No embedding models found. Configure them in your deployment.',
       );
     }
 
@@ -194,9 +194,19 @@ const loadMessages = async (
     return;
   }
 
+  if (!res.ok) {
+    console.error('Failed to load chat messages', await res.text());
+    setMessages([]);
+    setIsMessagesLoaded(true);
+    return;
+  }
+
   const data = await res.json();
 
-  const messages = data.messages as Message[];
+  const messages = ((data.messages || []) as Message[]).map((message) => ({
+    ...message,
+    timings: message.timings || [],
+  }));
 
   setMessages(messages);
 
@@ -393,6 +403,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
 
       return {
         message: msg,
+        timings: msg.timings || [],
         parsedTextBlocks: textBlocks,
         speechMessage,
         thinkingEnded,
@@ -579,6 +590,16 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         setMessages((prev) =>
           prev.map((msg) => {
             if (msg.messageId === messageId) {
+              if (data.block.type === 'timing') {
+                const timingBlock = data.block as TimingBlock;
+
+                return {
+                  ...msg,
+                  timingBlockId: timingBlock.id,
+                  timings: timingBlock.data.phases,
+                };
+              }
+
               const exists = msg.responseBlocks.findIndex(
                 (b) => b.id === data.block.id,
               );
@@ -614,6 +635,23 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         setMessages((prev) =>
           prev.map((msg) => {
             if (msg.messageId === messageId) {
+              if (msg.timingBlockId === data.blockId) {
+                const timingBlock: TimingBlock = {
+                  id: data.blockId,
+                  type: 'timing',
+                  data: {
+                    phases: [...msg.timings],
+                  },
+                };
+
+                applyPatch(timingBlock, data.patch);
+
+                return {
+                  ...msg,
+                  timings: timingBlock.data.phases,
+                };
+              }
+
               const updatedBlocks = msg.responseBlocks.map((block) => {
                 if (block.id === data.blockId) {
                   const updatedBlock = { ...block };
@@ -663,20 +701,6 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         setLoading(false);
 
         const lastMsg = messagesRef.current[messagesRef.current.length - 1];
-
-        const autoMediaSearch = getAutoMediaSearch();
-
-        if (autoMediaSearch) {
-          setTimeout(() => {
-            document
-              .getElementById(`search-images-${lastMsg.messageId}`)
-              ?.click();
-
-            document
-              .getElementById(`search-videos-${lastMsg.messageId}`)
-              ?.click();
-          }, 200);
-        }
 
         // Check if there are sources and no suggestions
 
@@ -734,6 +758,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
       backendId,
       query: message,
       responseBlocks: [],
+      timings: [],
       status: 'answering',
       createdAt: new Date(),
     };

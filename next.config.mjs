@@ -3,6 +3,11 @@ import pkg from './package.json' with { type: 'json' };
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  experimental: {
+    prerenderEarlyExit: false,
+    staticGenerationRetryCount: 0,
+    staticGenerationMaxConcurrency: 1,
+  },
   images: {
     remotePatterns: [
       {

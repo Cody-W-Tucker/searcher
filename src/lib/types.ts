@@ -63,6 +63,24 @@ export type WidgetBlock = {
   };
 };
 
+export type TimingPhase = {
+  key: string;
+  label: string;
+  status: 'running' | 'completed' | 'skipped' | 'error';
+  startedAt?: string;
+  completedAt?: string;
+  durationMs?: number;
+  detail?: string;
+};
+
+export type TimingBlock = {
+  id: string;
+  type: 'timing';
+  data: {
+    phases: TimingPhase[];
+  };
+};
+
 export type ReasoningResearchBlock = {
   id: string;
   type: 'reasoning';
@@ -120,4 +138,5 @@ export type Block =
   | SourceBlock
   | SuggestionBlock
   | WidgetBlock
+  | TimingBlock
   | ResearchBlock;

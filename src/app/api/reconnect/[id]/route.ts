@@ -1,5 +1,7 @@
 import SessionManager from '@/lib/session';
 
+export const dynamic = 'force-dynamic';
+
 export const POST = async (
   req: Request,
   { params }: { params: Promise<{ id: string }> },

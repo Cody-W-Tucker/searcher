@@ -18,6 +18,22 @@ export const messages = sqliteTable('messages', {
   ),
 });
 
+export const messageTimings = sqliteTable('message_timings', {
+  id: integer('id').primaryKey(),
+  chatId: text('chatId').notNull(),
+  messageId: text('messageId').notNull(),
+  phaseKey: text('phaseKey').notNull(),
+  label: text('label').notNull(),
+  status: text({
+    enum: ['running', 'completed', 'skipped', 'error'],
+  }).notNull(),
+  startedAt: text('startedAt'),
+  completedAt: text('completedAt'),
+  durationMs: integer('durationMs'),
+  detail: text('detail'),
+  updatedAt: text('updatedAt').notNull(),
+});
+
 interface DBFile {
   name: string;
   fileId: string;

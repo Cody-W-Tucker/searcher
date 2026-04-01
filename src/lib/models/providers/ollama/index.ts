@@ -18,9 +18,7 @@ const providerConfigFields: UIConfigField[] = [
     key: 'baseURL',
     description: 'The base URL for the Ollama',
     required: true,
-    placeholder: process.env.DOCKER
-      ? 'http://host.docker.internal:11434'
-      : 'http://localhost:11434',
+    placeholder: 'http://localhost:11434',
     env: 'OLLAMA_BASE_URL',
     scope: 'server',
   },

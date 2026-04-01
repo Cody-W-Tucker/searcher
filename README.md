@@ -3,7 +3,6 @@
 [![GitHub Repo stars](https://img.shields.io/github/stars/ItzCrazyKns/Vane?style=social)](https://github.com/ItzCrazyKns/Vane/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/ItzCrazyKns/Vane?style=social)](https://github.com/ItzCrazyKns/Vane/network/members)
 [![GitHub watchers](https://img.shields.io/github/watchers/ItzCrazyKns/Vane?style=social)](https://github.com/ItzCrazyKns/Vane/watchers)
-[![Docker Pulls](https://img.shields.io/docker/pulls/itzcrazykns1337/vane?color=blue)](https://hub.docker.com/r/itzcrazykns1337/vane)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/ItzCrazyKns/Vane/blob/master/LICENSE)
 [![GitHub last commit](https://img.shields.io/github/last-commit/ItzCrazyKns/Vane?color=green)](https://github.com/ItzCrazyKns/Vane/commits/master)
 [![Discord](https://dcbadge.limes.pink/api/server/26aArMy8tT?style=flat)](https://discord.gg/26aArMy8tT)
@@ -24,7 +23,7 @@ Want to know more about its architecture and how it works? You can read it [here
 
 🧩 **Widgets** - Helpful UI cards that show up when relevant, like weather, calculations, stock prices, and other quick lookups.
 
-🔍 **Web search powered by SearxNG** - Access multiple search engines while keeping your identity private. Support for Tavily and Exa coming soon for even better results.
+🔍 **Web search powered by Exa** - Fast web retrieval tuned for AI workflows, with compact highlights and cited sources.
 
 📷 **Image and video search** - Find visual content alongside text results. Search isn't limited to just articles anymore.
 
@@ -76,92 +75,62 @@ We'd also like to thank the following partners for their generous support:
 
 ## Installation
 
-There are mainly 2 ways of installing Vane - With Docker, Without Docker. Using Docker is highly recommended.
+Vane can be installed using Nix for a reproducible and declarative setup, or manually via npm/yarn.
 
-### Getting Started with Docker (Recommended)
+### Getting Started with Nix (Recommended)
 
-Vane can be easily run using Docker. Simply run the following command:
-
-```bash
-docker run -d -p 3000:3000 -v vane-data:/home/vane/data --name vane itzcrazykns1337/vane:latest
-```
-
-This will pull and start the Vane container with the bundled SearxNG search engine. Once running, open your browser and navigate to http://localhost:3000. You can then configure your settings (API keys, models, etc.) directly in the setup screen.
-
-**Note**: The image includes both Vane and SearxNG, so no additional setup is required. The `-v` flags create persistent volumes for your data and uploaded files.
-
-#### Using Vane with Your Own SearxNG Instance
-
-If you already have SearxNG running, you can use the slim version of Vane:
+Vane can be easily run using Nix. This ensures all dependencies are managed correctly:
 
 ```bash
-docker run -d -p 3000:3000 -e SEARXNG_API_URL=http://your-searxng-url:8080 -v vane-data:/home/vane/data --name vane itzcrazykns1337/vane:slim-latest
+nix run github:ItzCrazyKns/Vane
 ```
 
-**Important**: Make sure your SearxNG instance has:
+This will start Vane on http://localhost:3000. Configure providers and server-side settings through environment variables before launch.
 
-- JSON format enabled in the settings
-- Wolfram Alpha search engine enabled
+#### Configure Exa Search
 
-Replace `http://your-searxng-url:8080` with your actual SearxNG URL. Then configure your AI provider settings in the setup screen at http://localhost:3000.
+Set the `EXA_API_KEY` environment variable before starting Vane:
 
-#### Advanced Setup (Building from Source)
+```bash
+EXA_API_KEY=your_exa_api_key nix run github:ItzCrazyKns/Vane
+```
 
-If you prefer to build from source or need more control:
+Configure server-side API keys and model lists through environment variables when deploying Vane.
 
-1. Ensure Docker is installed and running on your system.
-2. Clone the Vane repository:
+### Manual Installation
 
-   ```bash
-   git clone https://github.com/ItzCrazyKns/Vane.git
-   ```
-
-3. After cloning, navigate to the directory containing the project files.
-
-4. Build and run using Docker:
-
-   ```bash
-   docker build -t vane .
-   docker run -d -p 3000:3000 -v vane-data:/home/vane/data --name vane vane
-   ```
-
-5. Access Vane at http://localhost:3000 and configure your settings in the setup screen.
-
-**Note**: After the containers are built, you can start Vane directly from Docker without having to open a terminal.
-
-### Non-Docker Installation
-
-1. Install SearXNG and allow `JSON` format in the SearXNG settings. Make sure Wolfram Alpha search engine is also enabled.
-2. Clone the repository:
+1. Clone the repository:
 
    ```bash
    git clone https://github.com/ItzCrazyKns/Vane.git
    cd Vane
    ```
 
-3. Install dependencies:
+2. Install dependencies:
 
    ```bash
    npm i
    ```
 
-4. Build the application:
+3. Build the application:
 
    ```bash
    npm run build
    ```
 
-5. Start the application:
+4. Start the application:
 
    ```bash
    npm run start
    ```
 
-6. Open your browser and navigate to http://localhost:3000 to complete the setup and configure your settings (API keys, models, SearxNG URL, etc.) in the setup screen.
+5. Set your provider environment variables in your shell or `.env` file before starting Vane, then open http://localhost:3000.
 
-**Note**: Using Docker is recommended as it simplifies the setup process, especially for managing environment variables and dependencies.
+**Note**: Using Nix is recommended as it simplifies declarative provider and secret management.
 
-See the [installation documentation](https://github.com/ItzCrazyKns/Vane/tree/master/docs/installation) for more information like updating, etc.
+See the [Nix installation guide](https://github.com/ItzCrazyKns/Vane/tree/master/docs/installation/NIX.md) for detailed Nix documentation including NixOS deployment, development environments, and advanced configuration.
+
+See the [updating documentation](https://github.com/ItzCrazyKns/Vane/tree/master/docs/installation/UPDATING.md) for information on updating Vane.
 
 ### Troubleshooting
 
@@ -177,16 +146,15 @@ If Vane tells you that you haven't configured any chat model providers, ensure t
 
 If you're encountering an Ollama connection error, it is likely due to the backend being unable to connect to Ollama's API. To fix this issue you can:
 
-1. **Check your Ollama API URL:** Ensure that the API URL is correctly set in the settings menu.
+1. **Check your Ollama API URL:** Ensure that the API URL is correctly set in your environment or deployment config.
 2. **Update API URL Based on OS:**
 
-   - **Windows:** Use `http://host.docker.internal:11434`
-   - **Mac:** Use `http://host.docker.internal:11434`
-   - **Linux:** Use `http://<private_ip_of_host>:11434`
+   - Use `http://localhost:11434` for local connections
+   - For connections from other machines on your network, use `http://<private_ip_of_host>:11434`
 
    Adjust the port number if you're using a different one.
 
-3. **Linux Users - Expose Ollama to Network:**
+3. **Ensure Ollama is exposed to Network:**
 
    - Inside `/etc/systemd/system/ollama.service`, you need to add `Environment="OLLAMA_HOST=0.0.0.0:11434"`. (Change the port number if you are using a different one.) Then reload the systemd manager configuration with `systemctl daemon-reload`, and restart Ollama by `systemctl restart ollama`. For more information see [Ollama docs](https://github.com/ollama/ollama/blob/main/docs/faq.md#setting-environment-variables-on-linux)
 
@@ -196,12 +164,11 @@ If you're encountering an Ollama connection error, it is likely due to the backe
 
 If you're encountering a Lemonade connection error, it is likely due to the backend being unable to connect to Lemonade's API. To fix this issue you can:
 
-1. **Check your Lemonade API URL:** Ensure that the API URL is correctly set in the settings menu.
+1. **Check your Lemonade API URL:** Ensure that the API URL is correctly set in your environment or deployment config.
 2. **Update API URL Based on OS:**
 
-   - **Windows:** Use `http://host.docker.internal:8000`
-   - **Mac:** Use `http://host.docker.internal:8000`
-   - **Linux:** Use `http://<private_ip_of_host>:8000`
+   - Use `http://localhost:8000` for local connections
+   - For connections from other machines on your network, use `http://<private_ip_of_host>:8000`
 
    Adjust the port number if you're using a different one.
 
@@ -235,7 +202,6 @@ Vane runs on Next.js and handles all API requests. It works right away on the sa
 [![Deploy to Sealos](https://raw.githubusercontent.com/labring-actions/templates/main/Deploy-on-Sealos.svg)](https://usw.sealos.io/?openapp=system-template%3FtemplateName%3Dperplexica)
 [![Deploy to RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploylobe.svg)](https://repocloud.io/details/?app_id=267)
 [![Run on ClawCloud](https://raw.githubusercontent.com/ClawCloud/Run-Template/refs/heads/main/Run-on-ClawCloud.svg)](https://template.run.claw.cloud/?referralCode=U11MRQ8U9RM4&openapp=system-fastdeploy%3FtemplateName%3Dperplexica)
-[![Deploy on Hostinger](https://assets.hostinger.com/vps/deploy.svg)](https://www.hostinger.com/vps/docker-hosting?compose_url=https://raw.githubusercontent.com/ItzCrazyKns/Vane/refs/heads/master/docker-compose.yaml)
 
 ## Upcoming Features
 

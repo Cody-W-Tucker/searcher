@@ -16,8 +16,6 @@ import Markdown, { MarkdownToJSX, RuleType } from 'markdown-to-jsx';
 import Copy from './MessageActions/Copy';
 import Rewrite from './MessageActions/Rewrite';
 import MessageSources from './MessageSources';
-import SearchImages from './SearchImages';
-import SearchVideos from './SearchVideos';
 import { useSpeech } from 'react-text-to-speech';
 import ThinkBox from './ThinkBox';
 import { useChat, Section } from '@/lib/hooks/useChat';
@@ -26,6 +24,7 @@ import AssistantSteps from './AssistantSteps';
 import { ResearchBlock } from '@/lib/types';
 import Renderer from './Widgets/Renderer';
 import CodeBlock from './MessageRenderer/CodeBlock';
+import ResponseTiming from './ResponseTiming';
 
 const ThinkTagProcessor = ({
   children,
@@ -106,15 +105,19 @@ const MessageBox = ({
   return (
     <div className="space-y-6">
       <div className={'w-full pt-8 break-words'}>
-        <h2 className="text-black dark:text-white font-medium text-3xl lg:w-9/12">
+        <h2 className="text-black dark:text-white font-medium text-3xl max-w-prose">
           {section.message.query}
         </h2>
       </div>
 
-      <div className="flex flex-col space-y-9 lg:space-y-0 lg:flex-row lg:justify-between lg:space-x-9">
+      {section.timings.length > 0 && (
+        <ResponseTiming phases={section.timings} />
+      )}
+
+      <div className="flex flex-col space-y-9">
         <div
           ref={dividerRef}
-          className="flex flex-col space-y-6 w-full lg:w-9/12"
+          className="flex flex-col space-y-6 w-full max-w-prose"
         >
           {sources.length > 0 && (
             <div className="flex flex-col space-y-2">
@@ -267,21 +270,6 @@ const MessageBox = ({
             )}
           </div>
         </div>
-
-        {hasContent && (
-          <div className="lg:sticky lg:top-20 flex flex-col items-center space-y-3 w-full lg:w-3/12 z-30 h-full pb-4">
-            <SearchImages
-              query={section.message.query}
-              chatHistory={chatHistory}
-              messageId={section.message.messageId}
-            />
-            <SearchVideos
-              chatHistory={chatHistory}
-              query={section.message.query}
-              messageId={section.message.messageId}
-            />
-          </div>
-        )}
       </div>
     </div>
   );

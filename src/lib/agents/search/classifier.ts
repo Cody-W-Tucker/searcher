@@ -17,9 +17,6 @@ const schema = z.object({
     discussionSearch: z
       .boolean()
       .describe('Indicates whether to perform a discussion search.'),
-    showWeatherWidget: z
-      .boolean()
-      .describe('Indicates whether to show the weather widget.'),
     showStockWidget: z
       .boolean()
       .describe('Indicates whether to show the stock widget.'),
@@ -43,7 +40,7 @@ export const classify = async (input: ClassifierInput) => {
       },
       {
         role: 'user',
-        content: `<conversation_history>\n${formatChatHistoryAsString(input.chatHistory)}\n</conversation_history>\n<user_query>\n${input.query}\n</user_query>`,
+        content: `<conversation_history>\n${formatChatHistoryAsString(input.chatHistory)}</conversation_history>\n<user_query>\n${input.query}\n</user_query>`,
       },
     ],
     schema,

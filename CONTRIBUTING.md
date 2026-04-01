@@ -11,7 +11,7 @@ Vane's codebase is organized as follows:
 - **UI Components and Pages**:
   - **Components (`src/components`)**: Reusable UI components.
   - **Pages and Routes (`src/app`)**: Next.js app directory structure with page components.
-    - Main app routes include: home (`/`), chat (`/c`), discover (`/discover`), and library (`/library`).
+    - Main app routes include: home (`/`), chat (`/c`), and library (`/library`).
   - **API Routes (`src/app/api`)**: Server endpoints implemented with Next.js route handlers.
 - **Backend Logic (`src/lib`)**: Contains all the backend functionality including search, database, and API logic.
   - The search system lives in `src/lib/agents/search`.
@@ -19,7 +19,7 @@ Vane's codebase is organized as follows:
   - Database functionality is in `src/lib/db`.
   - Chat model and embedding model providers are in `src/lib/models/providers`, and models are loaded via `src/lib/models/registry.ts`.
   - Prompt templates are in `src/lib/prompts`.
-  - SearXNG integration is in `src/lib/searxng.ts`.
+  - Exa integration is in `src/lib/exa.ts`.
   - Upload search lives in `src/lib/uploads`.
 
 ### Where to make changes
@@ -63,13 +63,13 @@ Before diving into coding, setting up your local environment is key. Here's what
 
 1. Run `npm install` to install all dependencies.
 2. Use `npm run dev` to start the application in development mode.
-3. Open http://localhost:3000 and complete the setup in the UI (API keys, models, search backend URL, etc.).
+3. Set the required environment variables for the providers you want to test, then open http://localhost:3000.
 
 Database migrations are applied automatically on startup.
 
-For full installation options (Docker and non Docker), see the installation guide in the repository README.
+For full installation options (Nix and manual), see the installation guide in the repository README.
 
-**Please note**: Docker configurations are present for setting up production environments, whereas `npm run dev` is used for development purposes.
+**Please note**: Nix configurations are present for setting up production environments, whereas `npm run dev` is used for development purposes.
 
 ## Coding and Contribution Practices
 

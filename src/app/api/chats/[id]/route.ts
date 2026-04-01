@@ -1,6 +1,13 @@
 import db from '@/lib/db';
 import { chats, messages } from '@/lib/db/schema';
+import {
+  deleteMessageTimings,
+  getMessageTimingsByChatId,
+  splitResponseBlocksAndTimings,
+} from '@/lib/db/messageTimings';
 import { eq } from 'drizzle-orm';
+
+export const dynamic = 'force-dynamic';
 
 export const GET = async (
   req: Request,
@@ -21,10 +28,22 @@ export const GET = async (
       where: eq(messages.chatId, id),
     });
 
+    const timingsByMessageId = await getMessageTimingsByChatId(id);
+
     return Response.json(
       {
         chat: chatExists,
-        messages: chatMessages,
+        messages: chatMessages.map((message) => {
+          const { responseBlocks, timings } = splitResponseBlocksAndTimings(
+            message.responseBlocks || [],
+          );
+
+          return {
+            ...message,
+            responseBlocks,
+            timings: timingsByMessageId[message.messageId] || timings,
+          };
+        }),
       },
       { status: 200 },
     );
@@ -54,6 +73,7 @@ export const DELETE = async (
 
     await db.delete(chats).where(eq(chats.id, id)).execute();
     await db.delete(messages).where(eq(messages.chatId, id)).execute();
+    await deleteMessageTimings({ chatId: id });
 
     return Response.json(
       { message: 'Chat deleted successfully' },

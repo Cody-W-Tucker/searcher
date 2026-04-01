@@ -2,6 +2,8 @@ import generateSuggestions from '@/lib/agents/suggestions';
 import ModelRegistry from '@/lib/models/registry';
 import { ModelWithProvider } from '@/lib/models/types';
 
+export const dynamic = 'force-dynamic';
+
 interface SuggestionsGenerationBody {
   chatHistory: any[];
   chatModel: ModelWithProvider;

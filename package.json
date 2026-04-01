@@ -8,7 +8,9 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "next lint",
-    "format:write": "prettier . --write"
+    "format:write": "prettier . --write",
+    "regenerate-yarn-nix": "nix run .#regenerate-yarn-nix",
+    "postinstall": "node -e \"if (require('fs').existsSync('.git')) { console.log('Git hooks active: nix/yarn.nix will auto-regenerate when yarn.lock changes'); }\""
   },
   "dependencies": {
     "@google/genai": "^1.34.0",

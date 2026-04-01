@@ -1,7 +1,7 @@
 import z from 'zod';
 import { ResearchAction } from '../../types';
 import { Chunk, SearchResultsResearchBlock } from '@/lib/types';
-import { searchSearxng } from '@/lib/searxng';
+import { searchExa } from '@/lib/exa';
 
 const schema = z.object({
   queries: z.array(z.string()).describe('List of academic search queries'),
@@ -60,8 +60,8 @@ const academicSearchAction: ResearchAction<typeof schema> = {
     let results: Chunk[] = [];
 
     const search = async (q: string) => {
-      const res = await searchSearxng(q, {
-        engines: ['arxiv', 'google scholar', 'pubmed'],
+      const res = await searchExa(q, {
+        category: 'research paper',
       });
 
       const resultChunks: Chunk[] = res.results.map((r) => ({
