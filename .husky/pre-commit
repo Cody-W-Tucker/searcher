@@ -1,0 +1,6 @@
+#!/bin/sh
+if git diff --cached --name-only | grep -q yarn.lock; then
+  echo "yarn.lock changed, regenerating nix/yarn.nix..."
+  nix run .#regenerate-yarn-nix
+  git add nix/yarn.nix
+fi

@@ -10,19 +10,15 @@
     "lint": "next lint",
     "format:write": "prettier . --write",
     "regenerate-yarn-nix": "nix run .#regenerate-yarn-nix",
-    "postinstall": "node -e \"if (require('fs').existsSync('.git')) { console.log('Git hooks active: nix/yarn.nix will auto-regenerate when yarn.lock changes'); }\""
+    "prepare": "husky"
   },
   "dependencies": {
-    "@google/genai": "^1.34.0",
     "@headlessui/react": "^2.2.0",
     "@headlessui/tailwindcss": "^0.2.2",
     "@huggingface/transformers": "^3.8.1",
-    "@icons-pack/react-simple-icons": "^12.3.0",
     "@phosphor-icons/react": "^2.1.10",
-    "@radix-ui/react-tooltip": "^1.2.8",
     "@tailwindcss/typography": "^0.5.12",
     "@toolsycc/json-repair": "^0.1.22",
-    "axios": "^1.8.3",
     "better-sqlite3": "^11.9.1",
     "clsx": "^2.1.0",
     "drizzle-orm": "^0.40.1",
@@ -30,7 +26,6 @@
     "jspdf": "^3.0.4",
     "lightweight-charts": "^5.0.9",
     "lucide-react": "^0.556.0",
-    "mammoth": "^1.9.1",
     "markdown-to-jsx": "^7.7.2",
     "mathjs": "^15.1.0",
     "motion": "^12.23.26",
@@ -51,7 +46,6 @@
     "tailwind-merge": "^2.2.2",
     "turndown": "^7.2.2",
     "yahoo-finance2": "^3.10.2",
-    "yet-another-react-lightbox": "^3.17.2",
     "zod": "^4.1.12"
   },
   "devDependencies": {
@@ -67,6 +61,7 @@
     "drizzle-kit": "^0.30.5",
     "eslint": "^8",
     "eslint-config-next": "14.1.4",
+    "husky": "^9.1.7",
     "postcss": "^8",
     "prettier": "^3.2.5",
     "tailwindcss": "^3.3.0",

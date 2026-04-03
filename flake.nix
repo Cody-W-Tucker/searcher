@@ -6,34 +6,73 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+    }:
     {
       nixosModules = {
-        default = args@{ config, lib, pkgs, ... }:
+        default =
+          args@{
+            config,
+            lib,
+            pkgs,
+            ...
+          }:
           let
-            yarnOfflineCache = (import ./nix/yarn.nix {
-              inherit (pkgs) fetchurl fetchgit linkFarm runCommand gnutar;
-            }).offline_cache;
+            yarnOfflineCache =
+              (import ./nix/yarn.nix {
+                inherit (pkgs)
+                  fetchurl
+                  fetchgit
+                  linkFarm
+                  runCommand
+                  gnutar
+                  ;
+              }).offline_cache;
             module = import ./nix/module.nix { inherit pkgs yarnOfflineCache; };
           in
-            module { inherit config lib pkgs; };
-        vane = args@{ config, lib, pkgs, ... }:
+          module { inherit config lib pkgs; };
+        vane =
+          args@{
+            config,
+            lib,
+            pkgs,
+            ...
+          }:
           let
-            yarnOfflineCache = (import ./nix/yarn.nix {
-              inherit (pkgs) fetchurl fetchgit linkFarm runCommand gnutar;
-            }).offline_cache;
+            yarnOfflineCache =
+              (import ./nix/yarn.nix {
+                inherit (pkgs)
+                  fetchurl
+                  fetchgit
+                  linkFarm
+                  runCommand
+                  gnutar
+                  ;
+              }).offline_cache;
             module = import ./nix/module.nix { inherit pkgs yarnOfflineCache; };
           in
-            module { inherit config lib pkgs; };
+          module { inherit config lib pkgs; };
       };
     }
-    // flake-utils.lib.eachDefaultSystem (system:
+    // flake-utils.lib.eachDefaultSystem (
+      system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
 
-        yarnOfflineCache = (import ./nix/yarn.nix {
-          inherit (pkgs) fetchurl fetchgit linkFarm runCommand gnutar;
-        }).offline_cache;
+        yarnOfflineCache =
+          (import ./nix/yarn.nix {
+            inherit (pkgs)
+              fetchurl
+              fetchgit
+              linkFarm
+              runCommand
+              gnutar
+              ;
+          }).offline_cache;
 
         vane = pkgs.callPackage ./nix/package.nix {
           inherit yarnOfflineCache;
@@ -42,7 +81,7 @@
       {
         packages = {
           default = vane;
-          vane = vane;
+          inherit vane;
         };
 
         apps = {
@@ -67,10 +106,13 @@
           buildInputs = with pkgs; [
             nodejs_24
             yarn
+            node-gyp
             python3
             gcc
             gnumake
             sqlite
+            vips
+            pkg-config
           ];
 
           shellHook = ''
@@ -80,6 +122,14 @@
 
             export npm_config_build_from_source=true
 
+            # Load .env.local if it exists
+            [ -f .env.local ] && set -a && source .env.local && set +a
+
+            # Default models if not set in .env.local
+            export OPENAI_BASE_URL="https://opencode.ai/zen/v1"
+            export OPENAI_CHAT_MODELS="''${OPENAI_CHAT_MODELS:-kimi-k2.5}"
+            export OPENAI_EMBEDDING_MODELS="''${OPENAI_EMBEDDING_MODELS:-text-embedding-3-small}"
+
             if [ -d node_modules/better-sqlite3 ]; then
               if ! node -e "const Database=require('better-sqlite3'); const db=new Database(':memory:'); db.close()" >/dev/null 2>&1; then
                 echo "Rebuilding better-sqlite3 for the current Node.js..."
@@ -88,5 +138,6 @@
             fi
           '';
         };
-      });
+      }
+    );
 }
