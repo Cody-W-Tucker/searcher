@@ -2,9 +2,32 @@ import z from 'zod';
 import { ResearchAction } from '../../types';
 import { Chunk, ReadingResearchBlock } from '@/lib/types';
 import TurnDown from 'turndown';
-import path from 'path';
+import { splitText } from '@/lib/utils/splitText';
 
 const turndownService = new TurnDown();
+
+const extractorPrompt = `
+Assistant is an AI information extractor. Assistant will be given scraped webpage content. Assistant's task is to extract the most relevant factual information from that content in concise bullet points.
+
+## Instructions
+1. Focus on factual information, not marketing language or navigation text.
+2. Preserve exact numbers, dates, names, and technical details.
+3. Remove filler and repetition.
+4. Return compact bullet points that are easy to reuse in an answer.
+
+## Output format
+Return a JSON object with a single key named "extracted_facts" whose value is a string of bullet points.
+
+<example_output>
+{
+  "extracted_facts": "- Fact 1\n- Fact 2"
+}
+</example_output>
+`;
+
+const extractorSchema = z.object({
+  extracted_facts: z.string(),
+});
 
 const schema = z.object({
   urls: z.array(z.string()).describe('A list of URLs to scrape content from.'),
@@ -109,9 +132,42 @@ const scrapeURLAction: ResearchAction<typeof schema> = {
           }
 
           const markdown = turndownService.turndown(text);
+          const chunks = splitText(markdown, 4000, 500);
+
+          let content = markdown;
+
+          if (chunks.length > 1) {
+            try {
+              const extractedChunks = await Promise.all(
+                chunks.map(async (chunk) => {
+                  const extracted = await additionalConfig.llm.generateObject<
+                    typeof extractorSchema
+                  >({
+                    messages: [
+                      {
+                        role: 'system',
+                        content: extractorPrompt,
+                      },
+                      {
+                        role: 'user',
+                        content: `<scraped_data>${chunk}</scraped_data>`,
+                      },
+                    ],
+                    schema: extractorSchema,
+                  });
+
+                  return extracted.extracted_facts;
+                }),
+              );
+
+              content = extractedChunks.filter(Boolean).join('\n');
+            } catch {
+              content = chunks[0] || markdown;
+            }
+          }
 
           results.push({
-            content: markdown,
+            content,
             metadata: {
               url,
               title: title,

@@ -20,12 +20,14 @@ export const buildWriterContext = (
   widgetOutputs: WidgetOutput[] = [],
 ) => {
   const finalContext =
-    searchFindings
-      .map(
-        (finding, index) =>
-          `<result index=${index + 1} title=${finding.metadata.title}>${finding.content}</result>`,
-      )
-      .join('\n') || '';
+    searchFindings.length > 0
+      ? searchFindings
+          .map(
+            (finding, index) =>
+              `<result index=${index + 1} title=${finding.metadata.title}>${finding.content}</result>`,
+          )
+          .join('\n')
+      : '<Query to be answered without search results; no relevant results were found>';
 
   const widgetContext = widgetOutputs
     .map((output) => `<result>${output.llmContext}</result>`)

@@ -193,7 +193,7 @@ class ConfigManager {
 
     providerConfigSections.forEach((provider) => {
       const newProvider: ConfigModelProvider & { required?: string[] } = {
-        id: crypto.randomUUID(),
+        id: `env-${provider.key}`,
         name: `${provider.name}`,
         type: provider.key,
         chatModels: [],
