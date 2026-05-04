@@ -22,17 +22,7 @@
             ...
           }:
           let
-            yarnOfflineCache =
-              (import ./nix/yarn.nix {
-                inherit (pkgs)
-                  fetchurl
-                  fetchgit
-                  linkFarm
-                  runCommand
-                  gnutar
-                  ;
-              }).offline_cache;
-            module = import ./nix/module.nix { inherit pkgs yarnOfflineCache; };
+            module = import ./nix/module.nix { inherit pkgs; };
           in
           module { inherit config lib pkgs; };
         vane =
@@ -43,17 +33,7 @@
             ...
           }:
           let
-            yarnOfflineCache =
-              (import ./nix/yarn.nix {
-                inherit (pkgs)
-                  fetchurl
-                  fetchgit
-                  linkFarm
-                  runCommand
-                  gnutar
-                  ;
-              }).offline_cache;
-            module = import ./nix/module.nix { inherit pkgs yarnOfflineCache; };
+            module = import ./nix/module.nix { inherit pkgs; };
           in
           module { inherit config lib pkgs; };
       };
@@ -63,20 +43,7 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
 
-        yarnOfflineCache =
-          (import ./nix/yarn.nix {
-            inherit (pkgs)
-              fetchurl
-              fetchgit
-              linkFarm
-              runCommand
-              gnutar
-              ;
-          }).offline_cache;
-
-        vane = pkgs.callPackage ./nix/package.nix {
-          inherit yarnOfflineCache;
-        };
+        vane = pkgs.callPackage ./nix/package.nix { };
       in
       {
         packages = {
@@ -93,11 +60,9 @@
             type = "app";
             program = "${pkgs.writeShellScriptBin "regenerate-yarn-nix" ''
               set -e
-              echo "Regenerating nix/yarn.nix from yarn.lock..."
-              ${pkgs.yarn2nix}/bin/yarn2nix --lockfile yarn.lock > nix/yarn.nix
-              echo "Successfully regenerated nix/yarn.nix"
-              echo ""
-              echo "Don't forget to commit nix/yarn.nix along with yarn.lock changes!"
+              echo "nix/yarn.nix is no longer used."
+              echo "To update the fetchYarnDeps hash, run:"
+              echo "  nix run nixpkgs#prefetch-yarn-deps -- yarn.lock"
             ''}/bin/regenerate-yarn-nix";
           };
         };

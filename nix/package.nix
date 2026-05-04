@@ -1,23 +1,24 @@
 # The main Vane application package
-{ pkgs, yarnOfflineCache }:
+{ pkgs }:
 
-pkgs.mkYarnPackage rec {
+pkgs.stdenv.mkDerivation rec {
   pname = "vane";
   version = (pkgs.lib.importJSON ./../package.json).version;
 
   src = ./..;
 
-  packageJSON = ./../package.json;
-  yarnLock = ./../yarn.lock;
-  inherit yarnOfflineCache;
+  offlineCache = pkgs.fetchYarnDeps {
+    yarnLock = ./../yarn.lock;
+    hash = "sha256-niC1feeXsClR/BRN30T/3ywVzm3fJh1AVBVHvGbVJN8=";
+  };
 
   dontFixup = true;
   doDist = false;
 
   nativeBuildInputs = with pkgs; [
+    yarnConfigHook
     python3
     nodejs_24
-    yarn
     gcc
     gnumake
   ];

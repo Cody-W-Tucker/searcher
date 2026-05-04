@@ -1,14 +1,12 @@
 # NixOS module for Vane service
-{ pkgs, yarnOfflineCache }:
+{ pkgs }:
 
 { config, lib, ... }:
 
 let
   cfg = config.services.vane;
 
-  vane = pkgs.callPackage ./package.nix {
-    inherit yarnOfflineCache;
-  };
+  vane = pkgs.callPackage ./package.nix { };
 
   providerSecretValues = lib.filterAttrs (_: value: value != null) {
     EXA_API_KEY = cfg.exaApiKey;

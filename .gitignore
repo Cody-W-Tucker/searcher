@@ -39,6 +39,9 @@ Thumbs.db
 db.sqlite
 /searxng
 
+# Runtime app copy created by the packaged Nix wrapper
+/app/
+
 # Nix build outputs
 result
 result-*
